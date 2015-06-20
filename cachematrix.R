@@ -1,8 +1,6 @@
-## Put comments here that give an overall description of what your
-## functions do
-
-
-
+## The functions makeCacheMatrix and cacheSolve are used to calculate the 
+## inverse of a square invertible matrix and cache the result.  The cached
+## result is used in future calls to increase efficiency.
 
 ## makeCacheMatrix: 
 ## Uses leixical scoping to  cache a square invertible matrix 
@@ -18,7 +16,9 @@ makeCacheMatrix <- function(x = matrix()) {
     x <<- y
     
     ## Assigned the variable x_inverted the value NULL until it is set by 
-    ## calling the set_inverted function below 
+    ## calling the set_inverted function below.  This means that a previously
+    ## calculated inverse matrix will be set to NULL if the original matrix
+    ## is changed.
     x_inverted <<- NULL
   }
   
@@ -42,12 +42,7 @@ makeCacheMatrix <- function(x = matrix()) {
   # Return a list containing the functions defined in the makeCacheMatrix
   # function.  Due to lexical scoping, the variables x and x_inverted are in
   # in scope for these functions.
-  list (
-        set = set, 
-        get = get, 
-        set_inverted = set_inverted, 
-        get_inverted = get_inverted
-        )
+  list (set = set, get = get, set_inverted = set_inverted, get_inverted = get_inverted)
 }
 
 ## cacheSolve:
@@ -57,37 +52,26 @@ makeCacheMatrix <- function(x = matrix()) {
 ## 'x' is the list of functions returned by the function makeCacheMatrix.
 
 ## If the inverse of the matrix orginally passed to makeCacheMatrix has been
-## cached and matrix is x is unchanged, then the cached inverse of x is returned.
-## Otherwise, the inverse of matrix x is caclculated using the solve() function and 
-## the inverse of matrix x is cached before it is returned.
+## cached and that matrix is unchanged, then the cached inverse matrix is returned.
+## Otherwise, the inverse is caclculated using the solve() function and 
+## cached before being returned.
 cacheSolve <- function(x, ...) {
-  ## Get locacl coppies of the matrix x and its inverse
-  x <- x$get()
+  ## Get locacl coppy of inverse matrix
   x_inverted <- x$get_inverted()
   
-  ## Determine whether the inverse of matrix x has previously been computed.
+  ## Determine whether the inverse has previously been computed.
   if (!is.null(x_inverted)) {
-    
-    ## After establishing that the inverse of matrix x has been previously computed
-    ## (it was not NULL), we next determine whether the original matrix x was
-    ## changed since x_inverted was calculated. 
-    
-    ## My linear algebra is rusty, but I believe multiplying a matrix by its inverse
-    ## gives the identity matrix of the same rank.  If so, x multiplied by x_inverted
-    ## will result in a product that is the identity matrix for matrix x.  If this
-    ## is true, assume matrix x has not been changed since x_inverted was set and
-    ## return x_inverted.
-    product_matrix <- x %*% x_inverted
-    identity_matrix <- diag(nrow(x))
-    if (all(product_matrix == idenity_matrix)) {
-      message("getting cached data")
-      return(x_inverted)
-    }
+    message("getting cached data")
+    return(x_inverted)
   }
-  ## If x has been changed since x_inverted was calculated or if x_inverted has not
-  ## yet been calculated, calculate it using the solve() function, cache x_inverted
-  ## using x$set_inverted(), and finally, return x_inverted.
-  x_inverted <- solve(x)
+  
+  ## If the original matrix was changed or if the inverted matrix has not
+  ## yet been calculated, calculate it using the solve() function, cache 
+  ## the inverse matrix using x$set_inverted() and return the inverse matrix.
+  
+  ## Note: don't create a local representation of the matrix named x because
+  # it will overwrite the parameter x, which is actually a list of functions.
+  x_inverted <- solve(x$get())
   x$set_inverted(x_inverted)
   x_inverted
 }
